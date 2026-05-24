@@ -21,6 +21,8 @@ Supabase-specific MCP database inspection is not currently available in this ses
 
 The first screen must let the user understand the whole life state within 5 seconds:
 
+- Asset Zone summary
+- Health Zone summary
 - Health status
 - Net worth state
 - Spending risk
@@ -32,9 +34,19 @@ The first screen must let the user understand the whole life state within 5 seco
 
 The landing page must remain a no-scroll, high-density executive dashboard.
 
+The target overview structure is now documented in `docs/04-overview-two-zone-dashboard.md`.
+
 ## 3. Phase 0: Foundation Cleanup
 
 Goal: make the current local CSV dashboard ready for Supabase, auth, and future drill-down routes without breaking the existing overview.
+
+Detailed implementation plan: `docs/03-phase0-foundation.md`
+
+Status:
+
+- Supabase runtime, clients, middleware, env validation, migrations, and generated DB types are in place.
+- Dashboard data adapters, Supabase source fallback, score extraction, and safe health-check route are implemented.
+- Phase 0 is functionally complete for the initial adapter boundary. Future changes should preserve the source abstraction while Phase 2 imports data and Phase 3 redesigns the overview.
 
 Tasks:
 
@@ -53,12 +65,19 @@ Tasks:
    - `lib/dashboard-data/csv-source.ts`
    - `lib/dashboard-data/supabase-source.ts`
    - `lib/dashboard-data/types.ts`
+7. Extract score calculation:
+   - `lib/scoring/life-score.ts`
+8. Add safe Supabase status endpoint:
+   - `app/api/health/supabase/route.ts`
 
 Deliverables:
 
 - Supabase client utilities
 - env validation utility
 - dashboard data source interface
+- CSV/Supabase fallback source selector
+- score calculation module
+- safe Supabase health check endpoint
 - unchanged visual behavior on `/`
 
 Validation:
@@ -73,6 +92,8 @@ npm audit --audit-level=moderate
 ## 4. Phase 1: Database Design And Migration
 
 Goal: define the first Supabase schema that can store the current CSV data and support the PRD architecture.
+
+Detailed build plan: `docs/05-phase1-database-build-plan.md`
 
 Recommended tables:
 
@@ -133,6 +154,16 @@ Validation:
 
 Goal: move from direct CSV reads to auditable, repeatable data ingestion.
 
+Detailed build plan: `docs/06-phase2-data-pipeline-build-plan.md`
+
+Status:
+
+- Initial local CSV import script is implemented with raw batch preservation and idempotent raw row writes.
+- Current dashboard source CSV files were imported into Supabase.
+- Re-running the import does not duplicate raw rows.
+- Detailed 2024-2026 health checkup metrics are imported into `health_checkup_metrics`.
+- `/` now reads Supabase data first and shows `Supabase` when remote dashboard tables contain data.
+
 Tasks:
 
 1. Create import pipeline for existing files in `data/`.
@@ -166,27 +197,56 @@ Validation:
 
 Goal: turn the current visual prototype into the first production-grade overview.
 
+Detailed product/UI target: `docs/04-overview-two-zone-dashboard.md`
+
+Detailed build plan: `docs/07-phase3-overview-build-plan.md`
+
+Status:
+
+- First two-zone overview is implemented on `/`.
+- Asset Zone includes wealth composition, investment allocation, pension timeline, tax/action suggestions, and monthly 10M KRW target gap.
+- Health Zone includes trend chart, priority tracking, anomaly markers, monitoring guidance, and care guidance.
+- Browser verification confirms Asset Zone, Health Zone, Supabase source label, five chart canvases, and no page scroll at 1920x1080 and 1366x1024.
+
 Tasks:
 
 1. Switch `/` data source to Supabase with CSV fallback.
 2. Add Family/JH/YR segmented toggle.
-3. Extract Life Score calculation:
+3. Redesign `/` around two primary zones:
+   - Asset Zone
+   - Health Zone
+4. Add Asset Zone surfaces:
+   - wealth composition pie/donut
+   - asset class tabs
+   - pension timeline by age
+   - tax-saving/action ideas
+   - monthly 10M KRW income target gap and suggestions
+5. Add Health Zone surfaces:
+   - current status
+   - management priorities
+   - detailed tracking tabs
+   - anomaly markers
+   - monitoring/action guidance
+6. Extract Life Score calculation:
    - `lib/scoring/health-score.ts`
    - `lib/scoring/finance-score.ts`
    - `lib/scoring/life-risk.ts`
-4. Add alert rules:
+7. Add alert rules:
    - BMI and metabolic risk
    - fasting glucose trend
    - net worth growth vs health deterioration
    - tax spike
    - investment concentration
-5. Add ECharts axisPointer synchronization.
-6. Replace Spending placeholder with real `spending_ledger` when available.
+8. Add ECharts axisPointer synchronization.
+9. Replace Spending placeholder with real `spending_ledger` when available.
+10. Add cross-zone AI Executive Summary connecting asset condition and health risk.
 
 Deliverables:
 
 - DB-backed overview
 - role/view toggle
+- two-zone Asset/Health dashboard
+- Asset Zone tabs and Health Zone tabs
 - first alert engine
 - synchronized chart interactions
 
@@ -198,6 +258,14 @@ Validation:
 ## 7. Phase 4: Drill-Down Routes
 
 Goal: make every overview zone clickable and useful.
+
+Detailed build plan: `docs/08-phase4-drilldown-build-plan.md`
+
+Status:
+
+- First route-shell pass is implemented for `/data-center`, `/assets`, `/health`, `/finance`, `/investment`, `/retirement`, `/tax`, `/spending`, `/ai-insight`, and `/analytics`.
+- Shared drill-down shell/navigation exists at `components/DomainShell.tsx`.
+- Browser verification returned HTTP 200 for all current route shells.
 
 Routes:
 
@@ -232,6 +300,14 @@ Deliverables:
 
 Goal: make AI useful without leaking secrets or bypassing privacy controls.
 
+Detailed build plan: `docs/09-phase5-ai-insight-build-plan.md`
+
+Status:
+
+- First deterministic AI Insight route shell is implemented.
+- Overview and `/ai-insight` use derived dashboard metrics only.
+- External AI generation and persistence remain planned for the next Phase 5 implementation step.
+
 Tasks:
 
 1. Add server-only OpenAI client.
@@ -257,6 +333,14 @@ Deliverables:
 ## 9. Phase 6: PWA And Samsung Ecosystem
 
 Goal: make the dashboard feel native on Galaxy devices.
+
+Detailed build plan: `docs/10-phase6-pwa-samsung-build-plan.md`
+
+Status:
+
+- First PWA manifest is implemented at `app/manifest.ts`.
+- `/manifest.webmanifest` returned HTTP 200 in browser verification.
+- Icons, service worker, IndexedDB snapshot cache, and Samsung Health adapter contract remain planned.
 
 Tasks:
 
@@ -317,8 +401,12 @@ Add weekly/monthly review modes:
 
 Recommended next implementation task:
 
-1. Install `@supabase/ssr`.
-2. Add Supabase client utilities and env validation.
-3. Add initial Supabase schema migration for current CSV-backed domains.
-4. Generate database types.
-5. Keep the current dashboard visually unchanged while preparing the DB-backed source.
+1. Expand Phase 2 import coverage to the remaining CSV files:
+   - detailed health metrics
+   - pension products
+   - salary/tax yearly
+   - salary take-home scenarios
+   - debt/loan snapshot
+   - tax payments
+2. Start Phase 4 drill-down shells for `/data-center`, `/health`, `/finance`, `/investment`, `/retirement`, and `/tax`.
+3. Use imported validation results to drive Data Trust Score and source freshness indicators.

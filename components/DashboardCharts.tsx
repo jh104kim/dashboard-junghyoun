@@ -90,6 +90,37 @@ export function InvestmentTreemap({
   return <Chart option={option} />;
 }
 
+export function WealthCompositionChart({ data }: { data: Array<{ label: string; value: number }> }) {
+  const option: EChartsOption = {
+    color: ["#18d690", "#3bc7ff", "#ffbf45", "#ff5c7a", "#9b8cff", "#46d6c8"],
+    tooltip: {
+      trigger: "item",
+      formatter: (params) => {
+        const item = params as CallbackDataParams;
+        const value = Number(item.value ?? 0);
+        return `${item.name}<br/>${Math.round(value / 100000000).toLocaleString()}억`;
+      },
+      backgroundColor: "#171a22",
+      borderColor: "rgba(255,255,255,.14)",
+      textStyle: { color: "#f4f7fb" },
+    },
+    legend: { bottom: 0, left: "center", textStyle: { color: "rgba(244,247,251,.7)", fontSize: 10 } },
+    series: [
+      {
+        name: "Asset",
+        type: "pie",
+        radius: ["48%", "72%"],
+        center: ["50%", "45%"],
+        avoidLabelOverlap: true,
+        label: { color: "#f4f7fb", fontSize: 10, formatter: "{b}" },
+        labelLine: { lineStyle: { color: "rgba(244,247,251,.35)" } },
+        data: data.map((item) => ({ name: item.label, value: item.value })),
+      },
+    ],
+  };
+  return <Chart option={option} />;
+}
+
 export function PensionBarChart({ data }: { data: Array<{ year: number; amount: number }> }) {
   const option: EChartsOption = {
     color: ["#3bc7ff"],

@@ -5,12 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "import:data": "tsx scripts/import-local-data.ts",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ag-grid-community/react": "^32.3.7",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.75.1",
     "echarts": "^5.6.0",
     "echarts-for-react": "^3.0.2",
@@ -18,7 +20,8 @@
     "next": "15.5.18",
     "papaparse": "^5.5.3",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -27,9 +30,12 @@
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "@types/ws": "^8.18.1",
     "eslint": "^9.27.0",
     "eslint-config-next": "15.5.18",
+    "playwright": "^1.60.0",
     "tailwindcss": "^4.1.17",
+    "tsx": "^4.22.3",
     "typescript": "^5.8.2"
   },
   "overrides": {
