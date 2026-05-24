@@ -1,6 +1,8 @@
 import { DomainShell } from "@/components/DomainShell";
 import { getDashboardData } from "@/lib/dashboard-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function TaxPage() {
   const data = await getDashboardData();
   const maxTax = Math.max(...data.tax.map((item) => item.amount), 0);

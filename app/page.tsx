@@ -7,6 +7,8 @@ import {
 } from "@/components/DashboardCharts";
 import { getDashboardData } from "@/lib/dashboard-data";
 
+export const dynamic = "force-dynamic";
+
 function krw(value: number) {
   return `${(value / 100000000).toFixed(1)}억`;
 }

@@ -1,16 +1,22 @@
 import { DomainShell } from "@/components/DomainShell";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+
 async function getCounts() {
-  const supabase = createAdminClient();
   const tables = ["raw_import_batches", "raw_import_rows", "health_key_metrics", "health_checkup_metrics"] as const;
-  const results = await Promise.all(
-    tables.map(async (table) => {
-      const { count } = await supabase.from(table).select("id", { count: "exact", head: true });
-      return { table, count: count ?? 0 };
-    }),
-  );
-  return results;
+  try {
+    const supabase = createAdminClient();
+    const results = await Promise.all(
+      tables.map(async (table) => {
+        const { count } = await supabase.from(table).select("id", { count: "exact", head: true });
+        return { table, count: count ?? 0 };
+      }),
+    );
+    return results;
+  } catch {
+    return tables.map((table) => ({ table, count: 0 }));
+  }
 }
 
 export default async function DataCenterPage() {

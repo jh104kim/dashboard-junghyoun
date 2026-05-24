@@ -1,6 +1,8 @@
 import { DomainShell } from "@/components/DomainShell";
 import { getDashboardData } from "@/lib/dashboard-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function RetirementPage() {
   const data = await getDashboardData();
   const peak = Math.max(...data.pension.map((item) => item.amount), 0);

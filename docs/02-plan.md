@@ -410,3 +410,14 @@ Recommended next implementation task:
    - tax payments
 2. Start Phase 4 drill-down shells for `/data-center`, `/health`, `/finance`, `/investment`, `/retirement`, and `/tax`.
 3. Use imported validation results to drive Data Trust Score and source freshness indicators.
+
+## 12. Deployment Notes
+
+Vercel deployment fix applied:
+
+- Pages that read Supabase-backed dashboard data are marked `dynamic = "force-dynamic"` so Next.js does not try to collect live private data during static page generation.
+- Middleware skips Supabase cookie refresh when public Supabase environment variables are not configured, preventing runtime crashes in incomplete preview environments.
+- Vercel should still be configured with:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`

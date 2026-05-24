@@ -98,6 +98,12 @@ npm run dev -- --port 3000
 
 If port `3000` is occupied, use the next available port and report it.
 
+## Deployment Rules
+
+- Pages that read private Supabase data at request time must opt out of static generation with `export const dynamic = "force-dynamic"`.
+- Middleware must not throw when Supabase public env vars are missing in a preview/build environment.
+- Do not rely on local `.env` for Vercel; configure required env vars in the Vercel project settings.
+
 ## Dependency Rules
 
 - Keep `package-lock.json` committed/updated with dependency changes.
