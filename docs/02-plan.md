@@ -32,9 +32,18 @@ The first screen must let the user understand the whole life state within 5 seco
 - Alerts and anomalies
 - Long-term trends
 
-The landing page must remain a no-scroll, high-density executive dashboard.
+The landing page must remain a no-scroll, high-density executive dashboard on desktop/tablet landscape. Rich tables and dense analysis should move to domain pages.
 
 The target overview structure is now documented in `docs/04-overview-two-zone-dashboard.md`.
+
+The next IA restructure is documented in `docs/11-dashboard-restructure-plan.md`.
+
+Current restructure direction:
+
+- Landing: executive cockpit for Life, Finance, Health, Activity, Travel, Learning, Data Trust, and next actions.
+- Domain pages: rich charts, tables, and source-level detail.
+- Desktop landing must avoid scroll and overlap.
+- Mobile must remain readable, even if it scrolls.
 
 ## 3. Phase 0: Foundation Cleanup
 
@@ -401,15 +410,10 @@ Add weekly/monthly review modes:
 
 Recommended next implementation task:
 
-1. Expand Phase 2 import coverage to the remaining CSV files:
-   - detailed health metrics
-   - pension products
-   - salary/tax yearly
-   - salary take-home scenarios
-   - debt/loan snapshot
-   - tax payments
-2. Start Phase 4 drill-down shells for `/data-center`, `/health`, `/finance`, `/investment`, `/retirement`, and `/tax`.
-3. Use imported validation results to drive Data Trust Score and source freshness indicators.
+1. Rebuild landing as a cockpit according to `docs/11-dashboard-restructure-plan.md`.
+2. Upgrade `/finance` and `/health` into true deep pages using the already extracted CSVs.
+3. Add `/activity`, `/travel`, and `/learning` route surfaces for Obsidian/raw Life OS data.
+4. Run Playwright quality checks for overlap, responsive readability, route health, and chart rendering.
 
 ## 12. Deployment Notes
 
@@ -421,3 +425,30 @@ Vercel deployment fix applied:
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - `SUPABASE_SERVICE_ROLE_KEY`
+
+## 13. Restructure Status
+
+First landing-plus-domain restructure pass is complete.
+
+Delivered:
+
+- cockpit-style landing page
+- richer `/finance` dashboard
+- richer `/health` dashboard
+- new `/activity`, `/travel`, and `/learning` route shells
+- senior UI/UX quality rules in `AGENTS.md`
+- detailed restructure plan and QA record in `docs/11-dashboard-restructure-plan.md`
+
+Latest validation:
+
+- `npm run typecheck`: passed
+- `npm run lint`: passed
+- `npm run build`: passed
+- `npm audit --audit-level=moderate`: 0 vulnerabilities
+- Playwright: no overlap detected on checked routes and viewports
+
+Next phase:
+
+1. Normalize remaining finance CSVs into import/data loaders.
+2. Build chart-backed Activity, Travel, and Learning dashboards.
+3. Add health detailed checkup matrix, histogram, and category risk views.

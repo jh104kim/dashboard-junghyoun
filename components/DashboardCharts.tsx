@@ -144,3 +144,99 @@ export function TaxLineChart({ data }: { data: Array<{ year: number; amount: num
   };
   return <Chart option={option} />;
 }
+
+export function ScoreGaugeChart({
+  value,
+  color = "#18d690",
+}: {
+  value: number;
+  color?: string;
+}) {
+  const option: EChartsOption = {
+    series: [
+      {
+        type: "gauge",
+        startAngle: 210,
+        endAngle: -30,
+        min: 0,
+        max: 100,
+        radius: "94%",
+        progress: { show: true, width: 8, itemStyle: { color } },
+        axisLine: { lineStyle: { width: 8, color: [[1, "rgba(255,255,255,.09)"]] } },
+        axisTick: { show: false },
+        splitLine: { show: false },
+        axisLabel: { show: false },
+        pointer: { show: false },
+        anchor: { show: false },
+        detail: {
+          valueAnimation: false,
+          formatter: "{value}",
+          color: "#f4f7fb",
+          fontSize: 24,
+          fontWeight: 700,
+          offsetCenter: [0, "8%"],
+        },
+        data: [{ value }],
+      },
+    ],
+  };
+  return <Chart option={option} />;
+}
+
+export function SparklineChart({
+  data,
+  color = "#3bc7ff",
+}: {
+  data: Array<{ x: string | number; y: number }>;
+  color?: string;
+}) {
+  const option: EChartsOption = {
+    grid: { left: 4, right: 4, top: 6, bottom: 4 },
+    xAxis: {
+      type: "category",
+      show: false,
+      data: data.map((item) => item.x),
+    },
+    yAxis: { type: "value", show: false, scale: true },
+    series: [
+      {
+        type: "line",
+        data: data.map((item) => item.y),
+        smooth: true,
+        symbol: "none",
+        lineStyle: { width: 2, color },
+        areaStyle: { color, opacity: 0.1 },
+      },
+    ],
+  };
+  return <Chart option={option} />;
+}
+
+export function CompactBarChart({
+  data,
+  color = "#3bc7ff",
+}: {
+  data: Array<{ label: string | number; value: number }>;
+  color?: string;
+}) {
+  const option: EChartsOption = {
+    color: [color],
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "#171a22",
+      borderColor: "rgba(255,255,255,.14)",
+      textStyle: { color: "#f4f7fb" },
+    },
+    grid: { left: 28, right: 8, top: 12, bottom: 22 },
+    xAxis: {
+      type: "category",
+      data: data.map((item) => item.label),
+      axisLabel: { color: "rgba(244,247,251,.62)", fontSize: 9 },
+      axisLine: { lineStyle: { color: "rgba(255,255,255,.12)" } },
+      axisTick: { show: false },
+    },
+    yAxis: { type: "value", show: false },
+    series: [{ type: "bar", barWidth: 8, data: data.map((item) => item.value) }],
+  };
+  return <Chart option={option} />;
+}

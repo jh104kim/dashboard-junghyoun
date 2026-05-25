@@ -1,8 +1,9 @@
+import Link from "next/link";
 import {
+  CompactBarChart,
   HealthTrendChart,
-  InvestmentTreemap,
-  PensionBarChart,
-  TaxLineChart,
+  ScoreGaugeChart,
+  SparklineChart,
   WealthCompositionChart,
 } from "@/components/DashboardCharts";
 import { getDashboardData } from "@/lib/dashboard-data";
@@ -23,30 +24,31 @@ function sourceLabel(source: string) {
   return "No Data";
 }
 
-function MiniKpi({ label, value, tone = "text-white" }: { label: string; value: string; tone?: string }) {
+function Kpi({ label, value, tone = "text-white" }: { label: string; value: string; tone?: string }) {
   return (
     <div className="min-w-0">
       <div className="kpi-label">{label}</div>
-      <div className={`mt-1 truncate text-[18px] font-semibold leading-none ${tone}`}>{value}</div>
+      <div className={`mt-1 truncate text-xl font-semibold leading-none ${tone}`}>{value}</div>
     </div>
   );
 }
 
-function StaticTabs({ items, active }: { items: string[]; active: string }) {
+function DomainLink({ href, label }: { href: string; label: string }) {
   return (
-    <div className="flex min-w-0 items-center gap-1">
-      {items.map((item) => (
-        <span
-          key={item}
-          className={`rounded border px-2 py-1 text-[11px] leading-none ${
-            item === active
-              ? "border-[var(--cyan)]/50 bg-[var(--cyan)]/12 text-[var(--cyan)]"
-              : "border-white/10 bg-white/[.03] text-[var(--muted)]"
-          }`}
-        >
-          {item}
-        </span>
-      ))}
+    <Link
+      href={href}
+      className="rounded border border-white/10 bg-white/[.035] px-2.5 py-1.5 text-xs text-[var(--muted)] transition hover:border-[var(--cyan)]/50 hover:text-[var(--cyan)]"
+    >
+      {label}
+    </Link>
+  );
+}
+
+function ActionItem({ label, detail }: { label: string; detail: string }) {
+  return (
+    <div className="action-item grid min-h-[44px] grid-cols-[88px_1fr] items-center gap-3 rounded-md border border-white/10 bg-black/20 px-3 py-2">
+      <span className="truncate text-xs font-semibold text-[var(--cyan)]">{label}</span>
+      <span className="min-w-0 truncate text-sm text-[var(--text)]">{detail}</span>
     </div>
   );
 }
@@ -61,215 +63,202 @@ export default async function Home() {
     timeZone: "Asia/Seoul",
   }).format(new Date());
 
-  const topHoldings = data.investment.slice(0, 5);
-  const healthPriority = data.health.priorities.slice(0, 3);
-  const strongestAsset = data.finance.assetComposition[0]?.label ?? "자산";
+  const healthSparkline =
+    data.health.series
+      .find((series) => series.id === "bmi")
+      ?.values.map((item) => ({ x: item.year, y: item.value })) ?? [];
+  const taxSparkline = data.tax.map((item) => ({ x: item.year, y: Math.round(item.amount / 1000000) }));
+  const pensionBars = data.pension.slice(0, 14).map((item) => ({
+    label: item.year,
+    value: Math.round(item.amount / 1000),
+  }));
+  const topHolding = data.investment[0];
+  const healthPriority = data.health.priorities[0];
+  const target57Progress = Math.min(Math.round((data.finance.netWorth / 5000000000) * 100), 100);
+  const dataTrustScore = data.source === "supabase" ? 78 : data.source === "csv" ? 58 : 10;
 
   return (
     <main className="life-shell subtle-grid p-3">
-      <section className="grid h-full grid-rows-[72px_1fr_108px] gap-3">
-        <header className="metric-panel grid grid-cols-[1.1fr_1.4fr_1fr] items-center gap-3 px-4">
-          <div className="flex items-center gap-5">
-            <div>
-              <div className="kpi-label">Today</div>
-              <div className="mt-1 text-lg font-semibold">{today}</div>
-            </div>
-            <div>
-              <div className="kpi-label">Profile</div>
-              <div className="mt-1 text-lg font-semibold">Age 52 · Galaxy</div>
-            </div>
-            <div>
-              <div className="kpi-label">Sync</div>
-              <div className="mt-1 text-lg font-semibold text-[var(--green)]">{sourceLabel(data.source)} · 3m ago</div>
-            </div>
+      <section className="landing-grid mx-auto grid h-full max-w-[1920px] grid-rows-[72px_1fr_120px] gap-3">
+        <header className="landing-header metric-panel grid grid-cols-[1.05fr_1.2fr_1.1fr] items-center gap-4 px-4">
+          <div className="landing-meta flex min-w-0 items-center gap-5">
+            <Kpi label="Today" value={today} />
+            <Kpi label="Profile" value="Age 52 · Galaxy" />
+            <Kpi label="Sync" value={`${sourceLabel(data.source)} · 3m ago`} tone="text-[var(--green)]" />
           </div>
-
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid min-w-0 grid-cols-3 gap-3">
             <div className="rounded-md border border-white/10 bg-white/[.035] px-3 py-2">
-              <div className="kpi-label">Life Score</div>
-              <div className="mt-1 text-3xl font-bold text-[var(--green)]">{data.scores.life}</div>
+              <Kpi label="Life Score" value={String(data.scores.life)} tone="text-[var(--green)]" />
             </div>
             <div className="rounded-md border border-white/10 bg-white/[.035] px-3 py-2">
-              <div className="kpi-label">Health</div>
-              <div className="mt-1 text-3xl font-bold text-[var(--amber)]">{data.scores.health}</div>
+              <Kpi label="Health" value={String(data.scores.health)} tone="text-[var(--amber)]" />
             </div>
             <div className="rounded-md border border-white/10 bg-white/[.035] px-3 py-2">
-              <div className="kpi-label">Asset</div>
-              <div className="mt-1 text-3xl font-bold text-[var(--cyan)]">{data.scores.finance}</div>
+              <Kpi label="Finance" value={String(data.scores.finance)} tone="text-[var(--cyan)]" />
             </div>
           </div>
-
-          <div className="flex items-center justify-end gap-3">
-            <div className="rounded-md border border-[var(--amber)]/40 bg-[var(--amber)]/10 px-3 py-2 text-sm font-semibold text-[var(--amber)]">
-              Alert: Health Watch
-            </div>
-            <div className="rounded-md border border-[var(--green)]/40 bg-[var(--green)]/10 px-3 py-2 text-sm font-semibold text-[var(--green)]">
-              Risk: {data.scores.risk}
-            </div>
-          </div>
+          <nav className="flex min-w-0 flex-wrap justify-end gap-2">
+            <DomainLink href="/finance" label="Finance" />
+            <DomainLink href="/health" label="Health" />
+            <DomainLink href="/activity" label="Activity" />
+            <DomainLink href="/travel" label="Travel" />
+            <DomainLink href="/learning" label="Learning" />
+            <DomainLink href="/data-center" label="Data" />
+          </nav>
         </header>
 
-        <section className="grid min-h-0 grid-cols-[1.25fr_.95fr] gap-3">
-          <article className="metric-panel grid min-h-0 grid-rows-[56px_1fr_154px] p-3">
-            <div className="flex items-start justify-between">
+        <section className="landing-main grid min-h-0 grid-cols-[1.1fr_.95fr_.95fr] grid-rows-[1fr_1fr] gap-3">
+          <article className="metric-panel grid min-h-0 grid-rows-[44px_1fr] p-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold">Asset Zone</h2>
-                <p className="text-xs text-[var(--muted)]">전재산 구성, 투자, 연금, 세금, 월 1천만원 목표</p>
+                <h2 className="text-base font-semibold">Life Cockpit</h2>
+                <p className="text-xs text-[var(--muted)]">대표 지표와 오늘의 운영 판단</p>
               </div>
-              <div className="grid grid-cols-4 gap-4 text-right">
-                <MiniKpi label="Net Worth" value={krw(data.finance.netWorth)} tone="text-[var(--green)]" />
-                <MiniKpi label="Debt" value={krw(data.finance.debt)} />
-                <MiniKpi label="Growth" value={pct(data.finance.netWorthGrowth)} tone="text-[var(--cyan)]" />
-                <MiniKpi label="Gap/mo" value={`${Math.round(data.finance.monthlyIncomeGap / 10000).toLocaleString()}만`} tone="text-[var(--amber)]" />
-              </div>
+              <span className="rounded border border-[var(--amber)]/40 bg-[var(--amber)]/10 px-2 py-1 text-xs font-semibold text-[var(--amber)]">
+                Risk: {data.scores.risk}
+              </span>
             </div>
-            <div className="grid min-h-0 grid-cols-[.78fr_1.22fr] gap-3">
-              <div className="grid min-h-0 grid-rows-[28px_1fr] rounded-md border border-white/10 bg-black/20 p-3">
-                <StaticTabs items={["Summary", "Real Estate", "Pension", "Investment", "Debt", "Tax", "Scenario"]} active="Summary" />
-                <div className="chart-box min-h-0">
-                  <WealthCompositionChart data={data.finance.assetComposition} />
-                </div>
+            <div className="grid min-h-0 grid-cols-[150px_1fr] gap-3">
+              <div className="chart-box min-h-0">
+                <ScoreGaugeChart value={data.scores.life} />
               </div>
-              <div className="grid min-h-0 grid-rows-[1fr_1fr] gap-3">
-                <div className="grid min-h-0 grid-rows-[24px_1fr] rounded-md border border-white/10 bg-black/20 p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="kpi-label">Investment Allocation</div>
-                    <span className="text-xs text-[var(--muted)]">Top {topHoldings.length}</span>
-                  </div>
-                  <InvestmentTreemap data={data.investment} />
-                </div>
-                <div className="grid min-h-0 grid-cols-[1.1fr_.9fr] gap-3">
-                  <div className="grid min-h-0 grid-rows-[22px_1fr] rounded-md border border-white/10 bg-black/20 p-3">
-                    <div className="kpi-label">Pension Timeline By Age</div>
-                    <PensionBarChart data={data.pension} />
-                  </div>
-                  <div className="rounded-md border border-white/10 bg-black/20 p-3">
-                    <div className="kpi-label">Tax & Income Actions</div>
-                    <div className="mt-3 space-y-2 text-xs leading-4 text-[var(--muted)]">
-                      {data.finance.taxSuggestions.map((item) => (
-                        <div key={item} className="rounded border border-white/10 bg-white/[.03] p-2">
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="grid min-h-0 grid-cols-[1fr_1fr_1fr] gap-3">
-              <div className="rounded-md border border-white/10 bg-white/[.03] p-3">
-                <div className="kpi-label">Asset Reading</div>
-                <p className="mt-2 text-sm leading-5">
-                  핵심 축은 {strongestAsset}이고, 부채비율은 {pct(data.finance.debtRatio)}입니다.
-                </p>
-              </div>
-              <div className="rounded-md border border-white/10 bg-white/[.03] p-3">
-                <div className="kpi-label">Monthly 10M Target</div>
-                <p className="mt-2 text-sm leading-5">
-                  예상 연금 월 {Math.round(data.finance.projectedMonthlyPension / 10000).toLocaleString()}만, 부족분{" "}
-                  {Math.round(data.finance.monthlyIncomeGap / 10000).toLocaleString()}만입니다.
-                </p>
-              </div>
-              <div className="rounded-md border border-white/10 bg-white/[.03] p-3">
-                <div className="kpi-label">Holdings Watch</div>
-                <div className="mt-2 space-y-1">
-                  {topHoldings.map((item) => (
-                    <div key={item.name} className="grid grid-cols-[1fr_72px_46px] gap-2 text-xs">
-                      <span className="truncate">{item.name}</span>
-                      <span className="text-right text-[var(--cyan)]">{Math.round(item.value / 10000).toLocaleString()}만</span>
-                      <span className={item.returnPct >= 0 ? "text-right text-[var(--green)]" : "text-right text-[var(--red)]"}>
-                        {item.returnPct}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              <div className="grid min-h-0 content-start gap-2">
+                <ActionItem label="Finance" detail={`${krw(data.finance.netWorth)} / 57세 목표 ${target57Progress}%`} />
+                <ActionItem label="Health" detail={`BMI ${data.health.latest.bmi}, 혈당 ${data.health.latest.fasting_glucose}`} />
+                <ActionItem label="Action" detail={healthPriority?.item ?? "관리 액션 확인 필요"} />
               </div>
             </div>
           </article>
 
-          <article className="metric-panel grid min-h-0 grid-rows-[56px_1fr_154px] p-3">
-            <div className="flex items-start justify-between">
+          <article className="metric-panel grid min-h-0 grid-rows-[44px_1fr] p-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold">Health Zone</h2>
-                <p className="text-xs text-[var(--muted)]">현재 상태, 관리 우선순위, 이상 신호, 유지 모니터링</p>
+                <h2 className="text-base font-semibold">Finance</h2>
+                <p className="text-xs text-[var(--muted)]">자산, 부채, 연금 목표</p>
               </div>
-              <div className="grid grid-cols-4 gap-4 text-right">
-                <MiniKpi label="BMI" value={String(data.health.latest.bmi)} tone="text-[var(--amber)]" />
-                <MiniKpi label="Glucose" value={`${data.health.latest.fasting_glucose}`} />
-                <MiniKpi label="BP" value={`${data.health.latest.systolic_bp}/${data.health.latest.diastolic_bp}`} />
-                <MiniKpi label="Actions" value={`${data.health.actions.length}`} tone="text-[var(--red)]" />
+              <Link href="/finance" className="text-xs font-semibold text-[var(--cyan)]">
+                Open
+              </Link>
+            </div>
+            <div className="grid min-h-0 grid-cols-[1fr_1fr] gap-3">
+              <div className="chart-box min-h-0">
+                <WealthCompositionChart data={data.finance.assetComposition} />
+              </div>
+              <div className="grid content-start gap-3">
+                <Kpi label="Net Worth" value={krw(data.finance.netWorth)} tone="text-[var(--green)]" />
+                <Kpi label="Debt Ratio" value={pct(data.finance.debtRatio)} />
+                <Kpi label="10M Gap" value={`${Math.round(data.finance.monthlyIncomeGap / 10000).toLocaleString()}만`} tone="text-[var(--amber)]" />
               </div>
             </div>
-            <div className="grid min-h-0 grid-rows-[28px_1fr_128px] gap-3">
-              <StaticTabs items={["Summary", "Metabolic", "Cardio", "Liver", "Weight", "Checkups", "Actions"]} active="Summary" />
-              <div className="chart-box min-h-0 rounded-md border border-white/10 bg-black/20 p-3">
+          </article>
+
+          <article className="metric-panel grid min-h-0 grid-rows-[44px_1fr] p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold">Health</h2>
+                <p className="text-xs text-[var(--muted)]">위험 지표와 관리 우선순위</p>
+              </div>
+              <Link href="/health" className="text-xs font-semibold text-[var(--cyan)]">
+                Open
+              </Link>
+            </div>
+            <div className="grid min-h-0 grid-rows-[1fr_44px] gap-2">
+              <div className="chart-box min-h-0 rounded-md border border-white/10 bg-black/20 p-2">
                 <HealthTrendChart series={data.health.series} />
               </div>
-              <div className="grid min-h-0 grid-cols-2 gap-3">
-                <div className="rounded-md border border-white/10 bg-black/20 p-3">
-                  <div className="kpi-label">Priority Tracking</div>
-                  <div className="mt-2 space-y-2">
-                    {healthPriority.map((item) => (
-                      <div key={item.item} className="rounded border border-white/10 bg-white/[.03] p-2">
-                        <div className="truncate text-sm font-semibold">{item.item}</div>
-                        <div className="mt-1 truncate text-xs text-[var(--muted)]">{item.dashboard_note}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-md border border-white/10 bg-black/20 p-3">
-                  <div className="kpi-label">Anomalies & Monitoring</div>
-                  <div className="mt-2 space-y-2 text-xs leading-4 text-[var(--muted)]">
-                    {[...data.health.anomalies, ...data.health.monitoring].slice(0, 4).map((item) => (
-                      <div key={item} className="truncate rounded border border-white/10 bg-white/[.03] p-2">
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className="grid grid-cols-4 gap-2">
+                <Kpi label="BMI" value={String(data.health.latest.bmi)} tone="text-[var(--amber)]" />
+                <Kpi label="Glucose" value={String(data.health.latest.fasting_glucose)} />
+                <Kpi label="BP" value={`${data.health.latest.systolic_bp}/${data.health.latest.diastolic_bp}`} />
+                <Kpi label="Actions" value={String(data.health.actions.length)} tone="text-[var(--red)]" />
               </div>
             </div>
-            <div className="grid min-h-0 grid-cols-[1fr_.9fr] gap-3">
-              <div className="rounded-md border border-white/10 bg-white/[.03] p-3">
-                <div className="kpi-label">Care Guidance</div>
-                <p className="mt-2 text-sm leading-5">
-                  혈당과 BMI를 같은 주간 리듬으로 보면서 수면, 식사, 운동 변화가 수치에 미치는 영향을 계속 추적합니다.
-                </p>
+          </article>
+
+          <article className="metric-panel grid min-h-0 grid-rows-[44px_1fr] p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold">Retirement</h2>
+                <p className="text-xs text-[var(--muted)]">나이별 연금 현금흐름</p>
               </div>
-              <div className="rounded-md border border-white/10 bg-white/[.03] p-3">
-                <div className="kpi-label">Tax Timeline</div>
-                <TaxLineChart data={data.tax} />
+              <Link href="/retirement" className="text-xs font-semibold text-[var(--cyan)]">
+                Open
+              </Link>
+            </div>
+            <div className="chart-box min-h-0 rounded-md border border-white/10 bg-black/20 p-2">
+              <CompactBarChart data={pensionBars} />
+            </div>
+          </article>
+
+          <article className="metric-panel grid min-h-0 grid-rows-[44px_1fr] p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold">Activity & Travel</h2>
+                <p className="text-xs text-[var(--muted)]">등산, 여행, 운동 데이터 후보</p>
+              </div>
+              <div className="flex gap-2">
+                <Link href="/activity" className="text-xs font-semibold text-[var(--cyan)]">
+                  Activity
+                </Link>
+                <Link href="/travel" className="text-xs font-semibold text-[var(--cyan)]">
+                  Travel
+                </Link>
+              </div>
+            </div>
+            <div className="grid content-start gap-2">
+              <ActionItem label="Hiking" detail="방문 99개, 미방문 184개 원천 확인" />
+              <ActionItem label="Schedule" detail="2026 산행 일정과 테마 산행 후보" />
+              <ActionItem label="Travel" detail="오제 트레킹, 가족여행, 준비물 데이터" />
+            </div>
+          </article>
+
+          <article className="metric-panel grid min-h-0 grid-rows-[44px_1fr] p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold">Signals & Trust</h2>
+                <p className="text-xs text-[var(--muted)]">데이터 신뢰도와 학습 신호</p>
+              </div>
+              <Link href="/learning" className="text-xs font-semibold text-[var(--cyan)]">
+                Open
+              </Link>
+            </div>
+            <div className="grid min-h-0 grid-cols-[1fr_120px] gap-3">
+              <div className="grid content-start gap-2">
+                <ActionItem label="Data" detail={`Trust ${dataTrustScore}, source ${sourceLabel(data.source)}`} />
+                <ActionItem label="Learning" detail="소셜 피드 Pick 10, 실행 아이디어 후보" />
+                <ActionItem label="Tax" detail={`최근 세금 추세 ${taxSparkline.at(-1)?.y ?? 0}백만`} />
+              </div>
+              <div className="grid min-h-0 grid-rows-2 gap-2">
+                <div className="chart-box min-h-0 rounded-md border border-white/10 bg-black/20 p-1">
+                  <SparklineChart data={healthSparkline} color="#18d690" />
+                </div>
+                <div className="chart-box min-h-0 rounded-md border border-white/10 bg-black/20 p-1">
+                  <SparklineChart data={taxSparkline} color="#ffbf45" />
+                </div>
               </div>
             </div>
           </article>
         </section>
 
-        <footer className="metric-panel grid grid-cols-[1.35fr_.9fr_.9fr] gap-3 p-3">
-          <div>
-              <div className="kpi-label">AI Executive Summary</div>
-              <p className="mt-2 text-[17px] font-semibold leading-snug">
-              순자산은 {krw(data.finance.netWorth)}이고 월 1천만원 목표 부족분은{" "}
-              {Math.round(data.finance.monthlyIncomeGap / 10000).toLocaleString()}만원입니다. BMI {data.health.latest.bmi}, 공복혈당{" "}
-              {data.health.latest.fasting_glucose} 기준 건강 리스크 관리가 우선입니다.
+        <footer className="landing-footer metric-panel grid grid-cols-[1.3fr_1fr_1fr] gap-3 p-3">
+          <div className="min-w-0">
+            <div className="kpi-label">Executive Summary</div>
+            <p className="mt-2 line-clamp-2 text-[16px] font-semibold leading-snug">
+              순자산은 {krw(data.finance.netWorth)}, 57세 목표 달성률은 {target57Progress}%입니다. 건강은 BMI {data.health.latest.bmi},
+              공복혈당 {data.health.latest.fasting_glucose} 기준으로 우선 관리가 필요합니다.
             </p>
           </div>
           <div className="rounded-md border border-white/10 bg-white/[.03] p-3">
-            <div className="flex items-center justify-between">
-              <div className="kpi-label">Data Center Status</div>
-              <span className="text-xs font-semibold text-[var(--amber)]">Ledger Pending</span>
-            </div>
-            <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-              <span className="text-[var(--muted)]">Health CSV</span>
-              <span className="text-right text-[var(--green)]">Loaded</span>
-              <span className="text-[var(--muted)]">Finance CSV</span>
-              <span className="text-right text-[var(--green)]">Loaded</span>
+            <div className="kpi-label">Top Holding</div>
+            <div className="mt-2 grid grid-cols-[1fr_72px_48px] gap-2 text-sm">
+              <span className="truncate">{topHolding?.name ?? "No holding"}</span>
+              <span className="text-right text-[var(--cyan)]">{Math.round((topHolding?.value ?? 0) / 10000).toLocaleString()}만</span>
+              <span className="text-right text-[var(--green)]">{topHolding?.returnPct ?? 0}%</span>
             </div>
           </div>
           <div className="rounded-md border border-white/10 bg-white/[.03] p-3">
-            <div className="kpi-label">Next Actions</div>
-            <div className="mt-2 text-sm leading-5 text-[var(--muted)]">
-              CSV upload schema, Supabase RLS, Samsung Health sync adapter, family RBAC toggle.
-            </div>
+            <div className="kpi-label">Next Build</div>
+            <div className="mt-2 truncate text-sm text-[var(--muted)]">Finance/Health deep pages, Activity/Travel/Learning dashboards</div>
           </div>
         </footer>
       </section>

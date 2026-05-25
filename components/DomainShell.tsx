@@ -15,6 +15,9 @@ const navItems = [
   { href: "/finance", label: "Finance" },
   { href: "/investment", label: "Investment" },
   { href: "/retirement", label: "Retirement" },
+  { href: "/activity", label: "Activity" },
+  { href: "/travel", label: "Travel" },
+  { href: "/learning", label: "Learning" },
   { href: "/tax", label: "Tax" },
   { href: "/ai-insight", label: "AI Insight" },
 ];
@@ -56,7 +59,7 @@ export function DomainShell({ title, subtitle, kpis, sections }: DomainShellProp
               <h2 className="text-base font-semibold">{section.title}</h2>
               <div className="mt-3 space-y-2">
                 {section.items.map((item) => (
-                  <div key={item} className="rounded border border-white/10 bg-black/20 p-3 text-sm leading-5 text-[var(--muted)]">
+                  <div key={item} className="overflow-hidden break-words rounded border border-white/10 bg-black/20 p-3 text-sm leading-5 text-[var(--muted)]">
                     {item}
                   </div>
                 ))}

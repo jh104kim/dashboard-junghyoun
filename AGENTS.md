@@ -9,10 +9,10 @@ Always treat `docs/01-prd.md` as the source of product truth. If implementation 
 ## Product Priorities
 
 1. Overview first: the first screen must communicate life status within 5 seconds.
-2. Two-zone overview: the primary landing structure is Asset Zone plus Health Zone, with cross-zone insight connecting wealth and health risk.
-3. No-scroll landing: the `/` overview must fit inside a single viewport, especially 1920x1080 desktop and Galaxy tablet landscape.
+2. Landing plus drill-downs: the primary structure is an executive landing cockpit with rich domain pages for finance, health, activity, travel, learning, data center, and AI insight.
+3. No-scroll desktop landing: the `/` overview must fit inside a single desktop/tablet-landscape viewport, especially 1920x1080 and 1366x1024. Mobile may scroll rather than compressing columns into unreadable widths.
 4. Dense but legible: favor compact executive dashboard UI over marketing pages, hero sections, large cards, or decorative layouts.
-5. Drill-down ready: overview panels should be structured so Asset, Health, Investment, Retirement, Tax, Spending, AI Insight, and Data Center can become dedicated routes or tabs.
+5. Drill-down first: overview panels must route to useful domain pages instead of pretending that static tabs are full analysis.
 6. AI-ready data: keep data transformations explicit and typed so future AI agents can consume the same derived dashboard state.
 
 ## Technical Stack
@@ -47,16 +47,20 @@ The files in `data/` are private personal health and finance data. Handle them a
 - The landing page is an application surface, not a landing/marketing site.
 - Use dark, high-density executive dashboard styling inspired by Bloomberg, Samsung Health, modern SaaS BI, and Grafana.
 - Keep panels compact with clear labels, KPI values, trend/risk color, and chart-first hierarchy.
-- Treat Asset Zone and Health Zone as the first-order overview surfaces. Finance, Investment, Pension, Tax, Debt, and Spending should roll up under Asset unless a dedicated route or tab needs detail.
+- Treat the landing page as a cockpit. Finance, Health, Activity, Travel, Learning, Data Trust, and AI Insight should each have a clear summary surface and a route for depth.
 - Asset Zone should include wealth composition, asset-class analysis, pension timeline, tax-saving/action ideas, and monthly 10M KRW target analysis when data supports it.
 - Health Zone should include current status, active management priorities, tracking trends, anomaly markers, and monitoring/action guidance.
 - Avoid nested cards, large hero text, decorative blobs, one-note palettes, and explanatory in-app copy.
 - Use responsive constraints so text and charts do not overlap at desktop and tablet sizes.
+- Never shrink tables or dense text below readable size just to fit a panel. Move detail to route pages, paginate, or use a constrained table region.
+- Domain boundaries matter: do not place tax charts in health panels, health advice inside asset panels, or unrelated charts in a zone just because space is available.
+- Static tabs are temporary only. If a label appears as a tab in production, it must switch content or link to a route.
 - After meaningful UI changes, verify in a browser that:
   - no Next.js runtime error overlay is present,
   - charts render,
   - the overview has no page scroll,
   - text does not visibly overlap.
+  - mobile/tablet layouts remain readable.
 
 ## Architecture Rules
 
@@ -126,6 +130,7 @@ If port `3000` is occupied, use the next available port and report it.
   - Phase 4: `docs/08-phase4-drilldown-build-plan.md`
   - Phase 5: `docs/09-phase5-ai-insight-build-plan.md`
   - Phase 6: `docs/10-phase6-pwa-samsung-build-plan.md`
+  - Dashboard restructure: `docs/11-dashboard-restructure-plan.md`
 - Update this file when project-wide conventions change.
 - Add short README-style docs only when they help operate or extend the dashboard.
 - Avoid duplicating the full PRD in code comments or UI copy.
@@ -133,6 +138,6 @@ If port `3000` is occupied, use the next available port and report it.
 ## Current Implementation Notes
 
 - The overview reads through `lib/dashboard-data`, which tries Supabase first and falls back to local CSV or an empty dashboard state.
-- The dashboard currently renders the first Asset Zone plus Health Zone overview documented in `docs/04-overview-two-zone-dashboard.md`.
+- The dashboard is moving from the first Asset/Health overview to a landing-plus-domain-pages IA documented in `docs/11-dashboard-restructure-plan.md`.
 - Local CSV import is available through `npm run import:data`; it preserves raw batches/rows and upserts the initial dashboard-critical domain tables.
 - Remaining CSV transforms, RBAC toggles, Samsung Health sync, PWA caching, and dedicated drill-down routes are planned next-phase work.

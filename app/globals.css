@@ -39,6 +39,70 @@ body {
     #08090d;
 }
 
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .life-shell {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .landing-grid {
+    height: auto;
+    grid-template-rows: auto auto auto;
+  }
+
+  .landing-header,
+  .landing-main,
+  .landing-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-header {
+    padding-block: 12px;
+  }
+
+  .landing-meta {
+    flex-wrap: wrap;
+  }
+
+  .landing-main {
+    grid-template-rows: none;
+  }
+
+  .landing-main > article {
+    min-height: 280px;
+  }
+
+  .action-item {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 4px;
+  }
+
+  .action-item span {
+    white-space: normal;
+  }
+
+  .landing-footer {
+    min-height: auto;
+  }
+
+  .finance-asset-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-holding-row {
+    grid-template-columns: minmax(0, 1fr) 72px 48px;
+  }
+}
+
 .metric-panel {
   min-width: 0;
   border: 1px solid var(--line);
