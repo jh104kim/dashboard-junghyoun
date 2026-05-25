@@ -428,14 +428,16 @@ Vercel deployment fix applied:
 
 ## 13. Restructure Status
 
-First landing-plus-domain restructure pass is complete.
+Second landing-plus-domain restructure pass is complete.
 
 Delivered:
 
 - cockpit-style landing page
 - richer `/finance` dashboard
 - richer `/health` dashboard
-- new `/activity`, `/travel`, and `/learning` route shells
+- `/activity`, `/travel`, and `/learning` route surfaces with live local Obsidian summaries
+- supplemental finance CSV visibility for pension products, salary/tax, take-home, debt/loan, and tax payments
+- health detailed checkup coverage summary
 - senior UI/UX quality rules in `AGENTS.md`
 - detailed restructure plan and QA record in `docs/11-dashboard-restructure-plan.md`
 
@@ -445,10 +447,11 @@ Latest validation:
 - `npm run lint`: passed
 - `npm run build`: passed
 - `npm audit --audit-level=moderate`: 0 vulnerabilities
-- Playwright: no overlap detected on checked routes and viewports
+- Playwright: no runtime overlay, no horizontal overflow, no visible text overflow, and no overlap detected on checked routes and viewports
+- Landing: no-scroll at `1920x1080` and `1366x1024`
 
 Next phase:
 
-1. Normalize remaining finance CSVs into import/data loaders.
-2. Build chart-backed Activity, Travel, and Learning dashboards.
+1. Normalize supplemental finance CSVs into Supabase domain transforms.
+2. Build chart-backed Activity, Travel, and Learning dashboards from the new source bridge.
 3. Add health detailed checkup matrix, histogram, and category risk views.

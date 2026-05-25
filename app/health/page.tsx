@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HealthTrendChart, ScoreGaugeChart, SparklineChart } from "@/components/DashboardCharts";
+import { CompactBarChart, HealthTrendChart, ScoreGaugeChart, SparklineChart } from "@/components/DashboardCharts";
 import { getDashboardData } from "@/lib/dashboard-data";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +19,10 @@ export default async function HealthPage() {
     data.health.series.find((series) => series.id === "bmi")?.values.map((item) => ({ x: item.year, y: item.value })) ?? [];
   const glucoseSparkline =
     data.health.series.find((series) => series.id === "fasting_glucose")?.values.map((item) => ({ x: item.year, y: item.value })) ?? [];
+  const categoryBars = data.health.detailSummary.categories.map((item) => ({
+    label: item.category.length > 6 ? `${item.category.slice(0, 6)}...` : item.category,
+    value: item.count,
+  }));
 
   return (
     <main className="min-h-screen subtle-grid bg-[var(--bg)] p-4 text-[var(--text)]">
@@ -110,6 +114,34 @@ export default async function HealthPage() {
               ))}
               <div className="rounded border border-[var(--cyan)]/30 bg-[var(--cyan)]/10 p-3 text-sm text-[var(--cyan)]">
                 다음 phase: 398개 검진 상세 항목을 category matrix와 risk histogram으로 확장
+              </div>
+            </div>
+          </Section>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-[1.2fr_.8fr]">
+          <Section title="Checkup Detail Distribution">
+            <div className="h-[260px] rounded border border-white/10 bg-black/20 p-2">
+              <CompactBarChart data={categoryBars} color="#9b8cff" />
+            </div>
+          </Section>
+
+          <Section title="Detail Data Coverage">
+            <div className="grid gap-3">
+              <div className="grid grid-cols-2 rounded border border-white/10 bg-black/20 p-3 text-sm">
+                <span className="text-[var(--muted)]">Total Detail Rows</span>
+                <span className="text-right text-[var(--cyan)]">{data.health.detailSummary.totalRows.toLocaleString()}</span>
+              </div>
+              <div className="grid grid-cols-2 rounded border border-white/10 bg-black/20 p-3 text-sm">
+                <span className="text-[var(--muted)]">Numeric Rows</span>
+                <span className="text-right text-[var(--green)]">{data.health.detailSummary.numericRows.toLocaleString()}</span>
+              </div>
+              <div className="grid grid-cols-2 rounded border border-white/10 bg-black/20 p-3 text-sm">
+                <span className="text-[var(--muted)]">Text Rows</span>
+                <span className="text-right text-[var(--amber)]">{data.health.detailSummary.textRows.toLocaleString()}</span>
+              </div>
+              <div className="rounded border border-[var(--cyan)]/30 bg-[var(--cyan)]/10 p-3 text-sm text-[var(--cyan)]">
+                다음 phase: numeric 항목별 정상/주의/위험 histogram과 category matrix를 추가합니다.
               </div>
             </div>
           </Section>

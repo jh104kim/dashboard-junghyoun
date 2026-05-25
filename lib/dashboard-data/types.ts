@@ -31,6 +31,40 @@ export type FinanceSnapshot = {
   projectedMonthlyPension: number;
   monthlyIncomeGap: number;
   taxSuggestions: string[];
+  pensionProducts: Array<{
+    category: string;
+    institution: string;
+    product: string;
+    startAge: number;
+    valuation: number;
+    taxRate: number;
+  }>;
+  salaryTax: Array<{
+    year: number;
+    grossPay: number;
+    incomeTax: number;
+    localIncomeTax: number;
+    effectiveTaxRate: number;
+  }>;
+  takehomeScenarios: Array<{
+    annualSalary: number;
+    monthlyTakehome: number;
+    monthlyDeductions: number;
+  }>;
+  taxPayments: Array<{
+    taxYear: number;
+    paymentDate: string;
+    taxType: string;
+    amount: number;
+    jurisdiction: string;
+  }>;
+  debtLoan: Array<{
+    label: string;
+    amount: number;
+    rate: number;
+    monthlyInterest: number;
+    note: string;
+  }>;
 };
 
 export type InvestmentHolding = {
@@ -69,6 +103,12 @@ export type DashboardData = {
     priorities: HealthAction[];
     monitoring: string[];
     anomalies: string[];
+    detailSummary: {
+      totalRows: number;
+      categories: Array<{ category: string; count: number }>;
+      numericRows: number;
+      textRows: number;
+    };
   };
   finance: FinanceSnapshot;
   investment: InvestmentHolding[];

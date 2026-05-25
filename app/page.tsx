@@ -7,6 +7,7 @@ import {
   WealthCompositionChart,
 } from "@/components/DashboardCharts";
 import { getDashboardData } from "@/lib/dashboard-data";
+import { getLifeSourceSummary } from "@/lib/life-source";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +55,7 @@ function ActionItem({ label, detail }: { label: string; detail: string }) {
 }
 
 export default async function Home() {
-  const data = await getDashboardData();
+  const [data, lifeSummary] = await Promise.all([getDashboardData(), getLifeSourceSummary()]);
   const today = new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "2-digit",
@@ -62,6 +63,7 @@ export default async function Home() {
     weekday: "short",
     timeZone: "Asia/Seoul",
   }).format(new Date());
+  const compactToday = today.replace(/\s/g, "").replace(/\.$/, "");
 
   const healthSparkline =
     data.health.series
@@ -82,9 +84,9 @@ export default async function Home() {
       <section className="landing-grid mx-auto grid h-full max-w-[1920px] grid-rows-[72px_1fr_120px] gap-3">
         <header className="landing-header metric-panel grid grid-cols-[1.05fr_1.2fr_1.1fr] items-center gap-4 px-4">
           <div className="landing-meta flex min-w-0 items-center gap-5">
-            <Kpi label="Today" value={today} />
-            <Kpi label="Profile" value="Age 52 · Galaxy" />
-            <Kpi label="Sync" value={`${sourceLabel(data.source)} · 3m ago`} tone="text-[var(--green)]" />
+            <Kpi label="Today" value={compactToday} />
+            <Kpi label="Profile" value="52 · Galaxy" />
+            <Kpi label="Sync" value={sourceLabel(data.source)} tone="text-[var(--green)]" />
           </div>
           <div className="grid min-w-0 grid-cols-3 gap-3">
             <div className="rounded-md border border-white/10 bg-white/[.035] px-3 py-2">
@@ -206,9 +208,12 @@ export default async function Home() {
               </div>
             </div>
             <div className="grid content-start gap-2">
-              <ActionItem label="Hiking" detail="방문 99개, 미방문 184개 원천 확인" />
-              <ActionItem label="Schedule" detail="2026 산행 일정과 테마 산행 후보" />
-              <ActionItem label="Travel" detail="오제 트레킹, 가족여행, 준비물 데이터" />
+                <ActionItem
+                  label="Hiking"
+                  detail={`방문 ${lifeSummary.activity.visitedMountains} / 후보 ${lifeSummary.activity.wishlistMountains}`}
+                />
+                <ActionItem label="Altitude" detail={`1,000m+ 산 ${lifeSummary.activity.highAltitudeMountains}개`} />
+                <ActionItem label="Travel" detail={`오제 ${lifeSummary.travel.tripDays}일 / 준비물 ${lifeSummary.travel.packingItems}개`} />
             </div>
           </article>
 
@@ -224,8 +229,8 @@ export default async function Home() {
             </div>
             <div className="grid min-h-0 grid-cols-[1fr_120px] gap-3">
               <div className="grid content-start gap-2">
-                <ActionItem label="Data" detail={`Trust ${dataTrustScore}, source ${sourceLabel(data.source)}`} />
-                <ActionItem label="Learning" detail="소셜 피드 Pick 10, 실행 아이디어 후보" />
+                <ActionItem label="Data" detail={`Trust ${dataTrustScore} / ${sourceLabel(data.source)}`} />
+                <ActionItem label="Learning" detail={`Pick ${lifeSummary.learning.finalPicks} / 후보 ${lifeSummary.learning.matchedCandidates}`} />
                 <ActionItem label="Tax" detail={`최근 세금 추세 ${taxSparkline.at(-1)?.y ?? 0}백만`} />
               </div>
               <div className="grid min-h-0 grid-rows-2 gap-2">

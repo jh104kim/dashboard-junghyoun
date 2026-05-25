@@ -38,7 +38,7 @@ Analysis:
 
 - Raw import preservation is working.
 - Domain upserts are stable for the dashboard-critical tables and detailed health checkup metrics.
-- Additional source files still need dedicated transforms before Phase 2 can be considered fully complete.
+- Supplemental finance files are now read into typed dashboard data for visibility, but still need dedicated Supabase transforms before Phase 2 can be considered fully complete.
 
 ## 2. Source Files
 
@@ -120,6 +120,14 @@ Each transformer should:
 - upsert into target table
 
 Status: completed for health key metrics, health findings/actions, net worth, investment holdings, pension cashflow, and tax history.
+
+Supplemental visibility status:
+
+- `finance_pension_products.csv`: visible in `/finance`, Supabase transform pending
+- `finance_salary_tax_yearly.csv`: visible in `/finance`, Supabase transform pending
+- `finance_salary_takehome_scenarios.csv`: visible in `/finance`, Supabase transform pending
+- `finance_tax_payments.csv`: visible in `/finance`, Supabase transform pending
+- `finance_debt_loan_snapshot.csv`: visible in `/finance`, Supabase transform pending
 
 ### Step 4: Idempotency Keys
 

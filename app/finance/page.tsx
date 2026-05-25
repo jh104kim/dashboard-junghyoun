@@ -26,6 +26,13 @@ export default async function FinancePage() {
   const target57Progress = Math.min(Math.round((data.finance.netWorth / 5000000000) * 100), 100);
   const pensionBars = data.pension.map((item) => ({ label: item.year, value: Math.round(item.amount / 1000) }));
   const taxSparkline = data.tax.map((item) => ({ x: item.year, y: Math.round(item.amount / 1000000) }));
+  const salaryBars = data.finance.salaryTax.map((item) => ({ label: item.year, value: Math.round(item.grossPay / 1000000) }));
+  const takehomeBars = data.finance.takehomeScenarios.slice(-10).map((item) => ({
+    label: Math.round(item.annualSalary / 10000000),
+    value: Math.round(item.monthlyTakehome / 10000),
+  }));
+  const latestTaxPayments = data.finance.taxPayments.slice(0, 6);
+  const largestDebt = [...data.finance.debtLoan].sort((a, b) => b.amount - a.amount)[0];
 
   return (
     <main className="min-h-screen subtle-grid bg-[var(--bg)] p-4 text-[var(--text)]">
@@ -48,7 +55,7 @@ export default async function FinancePage() {
           {[
             ["Net Worth", krw(data.finance.netWorth), "text-[var(--green)]"],
             ["57y Target", `${target57Progress}%`, "text-[var(--cyan)]"],
-            ["Debt", krw(data.finance.debt), "text-white"],
+            ["Debt", krw(data.finance.debt || largestDebt?.amount || 0), "text-white"],
             ["10M Gap", moneyMan(data.finance.monthlyIncomeGap), "text-[var(--amber)]"],
           ].map(([label, value, tone]) => (
             <div key={label} className="metric-panel p-4">
@@ -117,6 +124,64 @@ export default async function FinancePage() {
               <div className="rounded border border-[var(--amber)]/30 bg-[var(--amber)]/10 p-3 text-sm text-[var(--amber)]">
                 다음 phase: 급여, 실수령, 대출, 세금 납부 원장을 import에 포함
               </div>
+            </div>
+          </Section>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-3">
+          <Section title="Pension Products">
+            <div className="space-y-2">
+              {data.finance.pensionProducts.map((item) => (
+                <div key={`${item.institution}-${item.product}`} className="grid grid-cols-[1fr_74px_70px] gap-2 rounded border border-white/10 bg-black/20 p-3 text-sm">
+                  <span className="truncate">{item.institution} · {item.product}</span>
+                  <span className="text-right text-[var(--cyan)]">{moneyMan(item.valuation)}</span>
+                  <span className="text-right text-[var(--muted)]">{item.startAge}세</span>
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          <Section title="Salary And Tax">
+            <div className="h-[170px] rounded border border-white/10 bg-black/20 p-2">
+              <CompactBarChart data={salaryBars} color="#18d690" />
+            </div>
+            <div className="mt-3 text-sm text-[var(--muted)]">2010-2024 gross pay 기준. 다음 단계에서 bonus/tax-rate stacked view로 확장합니다.</div>
+          </Section>
+
+          <Section title="Takehome Scenarios">
+            <div className="h-[170px] rounded border border-white/10 bg-black/20 p-2">
+              <CompactBarChart data={takehomeBars} color="#9b8cff" />
+            </div>
+            <div className="mt-3 text-sm text-[var(--muted)]">연봉 구간별 월 실수령 비교. X축은 천만원 단위입니다.</div>
+          </Section>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-2">
+          <Section title="Debt And Loan Snapshot">
+            <div className="grid gap-2 md:grid-cols-2">
+              {data.finance.debtLoan.slice(0, 8).map((item) => (
+                <div key={`${item.label}-${item.amount}`} className="rounded border border-white/10 bg-black/20 p-3">
+                  <div className="truncate text-sm font-semibold">{item.label}</div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <span className="text-[var(--muted)]">Amount</span>
+                    <span className="text-right text-[var(--cyan)]">{moneyMan(item.amount)}</span>
+                    <span className="text-[var(--muted)]">Monthly Interest</span>
+                    <span className="text-right text-[var(--amber)]">{moneyMan(item.monthlyInterest)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          <Section title="Tax Payments Ledger">
+            <div className="space-y-2">
+              {latestTaxPayments.map((item) => (
+                <div key={`${item.paymentDate}-${item.taxType}-${item.amount}`} className="grid grid-cols-[92px_1fr_86px] gap-3 rounded border border-white/10 bg-black/20 p-3 text-sm">
+                  <span className="text-[var(--muted)]">{item.paymentDate || item.taxYear}</span>
+                  <span className="truncate">{item.taxType || item.jurisdiction}</span>
+                  <span className="text-right text-[var(--amber)]">{moneyMan(item.amount)}</span>
+                </div>
+              ))}
             </div>
           </Section>
         </section>

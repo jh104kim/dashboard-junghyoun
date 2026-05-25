@@ -138,6 +138,8 @@ If port `3000` is occupied, use the next available port and report it.
 ## Current Implementation Notes
 
 - The overview reads through `lib/dashboard-data`, which tries Supabase first and falls back to local CSV or an empty dashboard state.
-- The dashboard is moving from the first Asset/Health overview to a landing-plus-domain-pages IA documented in `docs/11-dashboard-restructure-plan.md`.
+- The dashboard now uses a landing-plus-domain-pages IA documented in `docs/11-dashboard-restructure-plan.md`.
+- Supplemental finance CSVs and detailed health coverage are merged into derived dashboard data for UI visibility while Supabase transforms are completed.
+- `lib/life-source.ts` reads local Obsidian Life OS files in read-only mode and safely falls back when `F:\ai-obsidian\지식창고` is unavailable.
 - Local CSV import is available through `npm run import:data`; it preserves raw batches/rows and upserts the initial dashboard-critical domain tables.
-- Remaining CSV transforms, RBAC toggles, Samsung Health sync, PWA caching, and dedicated drill-down routes are planned next-phase work.
+- Remaining Supabase transforms, chart-backed Activity/Travel/Learning pages, RBAC toggles, Samsung Health sync, and PWA caching are planned next-phase work.

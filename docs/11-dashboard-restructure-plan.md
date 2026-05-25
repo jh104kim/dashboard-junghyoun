@@ -177,6 +177,21 @@ Completed in the first restructure pass:
   - `SparklineChart`
   - `CompactBarChart`
 
+Completed in the second restructure pass:
+
+- Added supplemental local CSV loading for finance detail:
+  - pension products
+  - salary/tax yearly
+  - salary take-home scenarios
+  - tax payments
+  - debt/loan snapshot
+- Added detailed health checkup coverage summary from `health_detailed_2024_2026_metrics.csv`.
+- Expanded `/finance` with pension products, salary/tax chart, take-home scenarios, debt/loan cards, and tax payment ledger.
+- Expanded `/health` with checkup detail distribution and data coverage metrics.
+- Added read-only Obsidian Life OS source bridge at `lib/life-source.ts`.
+- Connected `/activity`, `/travel`, and `/learning` to live local source summaries with safe fallback when the Obsidian path is unavailable.
+- Connected the landing Activity/Travel/Learning cards to the same derived source summary.
+
 ## 9. QA Results
 
 Validation commands:
@@ -196,6 +211,7 @@ Playwright checks:
   - no page scroll at `1920x1080`
   - no page scroll at `1366x1024`
   - no section overlap detected
+  - no visible text overflow detected
 - Landing mobile:
   - scroll allowed
   - no horizontal overflow
@@ -207,18 +223,15 @@ Playwright checks:
   - no section overlap detected
   - no text overflow detected
 - Activity, Travel, Learning:
-  - route shells return 200
+  - routes return 200
+  - local Obsidian summaries render when `F:\ai-obsidian\지식창고` exists
+  - safe fallback renders when the local Obsidian path is unavailable
   - mobile wrapping fixed for long source paths
 
 ## 10. Remaining Gaps
 
-- `/activity`, `/travel`, and `/learning` are still source-inventory route shells, not full dashboards.
-- Finance still needs import support for:
-  - pension products
-  - salary/tax yearly
-  - salary take-home scenarios
-  - tax payments
-  - debt/loan snapshot
-- Health still needs detailed checkup matrix and distribution charts from the 398 detailed rows.
-- Landing still uses some static source counts for Activity/Travel/Learning until those sources are normalized into app data loaders.
-- Static route shells should be replaced with chart-backed pages in the next phase.
+- `/activity`, `/travel`, and `/learning` now show live source summaries, but still need chart-backed dashboards.
+- Supplemental finance CSVs are visible in app data, but still need dedicated Supabase domain transforms/imports.
+- Health detailed rows are summarized by category, but still need risk histogram, normal/watch/risk matrix, and item-level drill-down.
+- Obsidian source reading is intentionally local-only and read-only; Vercel will use fallback summaries until these sources are normalized into app-owned data tables.
+- Static route shells for older routes should be replaced with chart-backed pages as each domain becomes ready.

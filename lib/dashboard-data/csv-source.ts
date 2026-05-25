@@ -13,9 +13,22 @@ type HealthMetricRow = {
 };
 
 type HealthActionRow = {
+  year?: string;
+  category?: string;
   item: string;
   status_or_value: string;
   dashboard_note: string;
+};
+
+type HealthDetailRow = {
+  category: string;
+  metric_id: string;
+  metric_label: string;
+  date: string;
+  year: string;
+  value_text: string;
+  value_numeric: string;
+  reference_range: string;
 };
 
 type NetWorthRow = {
@@ -45,14 +58,84 @@ type TaxRow = {
   amount_krw: string;
 };
 
+type PensionProductRow = {
+  category: string;
+  institution: string;
+  product: string;
+  start_age: string;
+  valuation_thousand_krw: string;
+  tax_rate: string;
+};
+
+type SalaryTaxRow = {
+  year: string;
+  gross_pay_krw: string;
+  determined_income_tax_krw: string;
+  determined_local_income_tax_krw: string;
+  effective_tax_rate_pct: string;
+};
+
+type TakehomeScenarioRow = {
+  annual_salary_krw: string;
+  monthly_takehome_krw: string;
+  monthly_deductions_krw: string;
+};
+
+type TaxPaymentRow = {
+  tax_year: string;
+  payment_date: string;
+  tax_type: string;
+  amount_krw: string;
+  jurisdiction: string;
+};
+
+type DebtLoanRow = {
+  label: string;
+  amount_krw: string;
+  rate: string;
+  monthly_interest_krw: string;
+  note: string;
+};
+
+export type SupplementalCsvData = {
+  healthDetailRows: HealthDetailRow[];
+  pensionProducts: PensionProductRow[];
+  salaryTaxRows: SalaryTaxRow[];
+  takehomeScenarios: TakehomeScenarioRow[];
+  taxPayments: TaxPaymentRow[];
+  debtLoanRows: DebtLoanRow[];
+};
+
+export async function getCsvSupplementalData(): Promise<SupplementalCsvData> {
+  const [healthDetailRows, pensionProducts, salaryTaxRows, takehomeScenarios, taxPayments, debtLoanRows] =
+    await Promise.all([
+      readCsv<HealthDetailRow>("health_detailed_2024_2026_metrics.csv"),
+      readCsv<PensionProductRow>("finance_pension_products.csv"),
+      readCsv<SalaryTaxRow>("finance_salary_tax_yearly.csv"),
+      readCsv<TakehomeScenarioRow>("finance_salary_takehome_scenarios.csv"),
+      readCsv<TaxPaymentRow>("finance_tax_payments.csv"),
+      readCsv<DebtLoanRow>("finance_debt_loan_snapshot.csv"),
+    ]);
+
+  return {
+    healthDetailRows,
+    pensionProducts,
+    salaryTaxRows,
+    takehomeScenarios,
+    taxPayments,
+    debtLoanRows,
+  };
+}
+
 export async function getCsvDashboardData(): Promise<DashboardSourceResult> {
-  const [healthRows, actions, netWorthRows, holdings, pensionRows, taxRows] = await Promise.all([
+  const [healthRows, actions, netWorthRows, holdings, pensionRows, taxRows, supplemental] = await Promise.all([
     readCsv<HealthMetricRow>("health_key_yearly_metrics.csv"),
     readCsv<HealthActionRow>("health_findings_actions.csv"),
     readCsv<NetWorthRow>("finance_net_worth_snapshot.csv"),
     readCsv<HoldingRow>("finance_investment_holdings.csv"),
     readCsv<PensionRow>("finance_pension_cashflow_by_year.csv"),
     readCsv<TaxRow>("finance_tax_by_year_type.csv"),
+    getCsvSupplementalData(),
   ]);
 
   const rowCount =
@@ -77,6 +160,7 @@ export async function getCsvDashboardData(): Promise<DashboardSourceResult> {
       holdings,
       pensionRows,
       taxRows,
+      supplemental,
       source: "csv",
       warnings: [],
     }),
@@ -90,6 +174,7 @@ export function buildDashboardData(input: {
   holdings: HoldingRow[];
   pensionRows: PensionRow[];
   taxRows: TaxRow[];
+  supplemental?: SupplementalCsvData;
   source: "csv" | "supabase";
   warnings: string[];
 }): DashboardData {
@@ -169,6 +254,14 @@ export function buildDashboardData(input: {
   const targetMonthlyIncome = 10000000;
   const projectedMonthlyPension = Math.max(...Array.from(pensionByYear.values()), 0) * 1000 / 12;
   const monthlyIncomeGap = Math.max(targetMonthlyIncome - projectedMonthlyPension, 0);
+  const detailRows = input.supplemental?.healthDetailRows ?? [];
+  const categoryCounts = new Map<string, number>();
+  let numericRows = 0;
+  for (const row of detailRows) {
+    const category = row.category || "미분류";
+    categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+    if (row.value_numeric && Number.isFinite(toNumber(row.value_numeric))) numericRows += 1;
+  }
 
   const finance = {
     netWorth,
@@ -186,6 +279,40 @@ export function buildDashboardData(input: {
       "금융소득과 양도/배당 이벤트가 큰 해는 세금 납부 현금흐름을 선반영",
       "월 1천만원 목표는 연금 확정 현금흐름과 투자 인출률을 분리해 관리",
     ],
+    pensionProducts: (input.supplemental?.pensionProducts ?? []).map((row) => ({
+      category: row.category,
+      institution: row.institution,
+      product: row.product,
+      startAge: toNumber(row.start_age),
+      valuation: toNumber(row.valuation_thousand_krw) * 1000,
+      taxRate: toNumber(row.tax_rate),
+    })),
+    salaryTax: (input.supplemental?.salaryTaxRows ?? []).map((row) => ({
+      year: toNumber(row.year),
+      grossPay: toNumber(row.gross_pay_krw),
+      incomeTax: toNumber(row.determined_income_tax_krw),
+      localIncomeTax: toNumber(row.determined_local_income_tax_krw),
+      effectiveTaxRate: toNumber(row.effective_tax_rate_pct),
+    })),
+    takehomeScenarios: (input.supplemental?.takehomeScenarios ?? []).map((row) => ({
+      annualSalary: toNumber(row.annual_salary_krw),
+      monthlyTakehome: toNumber(row.monthly_takehome_krw),
+      monthlyDeductions: toNumber(row.monthly_deductions_krw),
+    })),
+    taxPayments: (input.supplemental?.taxPayments ?? []).map((row) => ({
+      taxYear: toNumber(row.tax_year),
+      paymentDate: row.payment_date,
+      taxType: row.tax_type,
+      amount: toNumber(row.amount_krw),
+      jurisdiction: row.jurisdiction,
+    })),
+    debtLoan: (input.supplemental?.debtLoanRows ?? []).map((row) => ({
+      label: row.label,
+      amount: toNumber(row.amount_krw),
+      rate: toNumber(row.rate),
+      monthlyInterest: toNumber(row.monthly_interest_krw),
+      note: row.note,
+    })),
   };
   const priorities = input.actions.filter((item) => item.dashboard_note || item.status_or_value).slice(0, 4);
   const anomalies = [
@@ -210,6 +337,15 @@ export function buildDashboardData(input: {
         "건강검진 지적사항은 완료/관찰/예약 상태로 관리",
       ],
       anomalies,
+      detailSummary: {
+        totalRows: detailRows.length,
+        categories: Array.from(categoryCounts.entries())
+          .map(([category, count]) => ({ category, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 8),
+        numericRows,
+        textRows: Math.max(detailRows.length - numericRows, 0),
+      },
     },
     finance,
     investment,
